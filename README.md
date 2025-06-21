@@ -137,7 +137,7 @@ T2: 0x00A31000: 4KB
 **Shashwat Saini**  
 Roll No: 2023AIB1015  
 
-""Vaibhav Gupta**
+**Vaibhav Gupta**
 Roll No:2023AIB1019
 AI Lab 3
 
