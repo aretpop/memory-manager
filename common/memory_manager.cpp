@@ -16,7 +16,24 @@ MemoryManager& MemoryManager::getInstance() {
 
 uint32_t MemoryManager::allocatePage() {
     if (free_pages.empty()) {
-        throw std::runtime_error("Out of physical memory!");
+        uint32_t page_to_replace;
+        bool replaced = false;
+        while (!page_allocation_order.empty()) {
+            page_to_replace = page_allocation_order.front();
+            page_allocation_order.pop();
+
+            if (allocated_pages.count(page_to_replace)) {
+                // This page is allocated, so we can replace it.
+                allocated_pages.erase(page_to_replace);
+                free_pages.insert(page_to_replace);
+                replaced = true;
+                std::cout << "Replaced page " << page_to_replace << std::endl;
+                break;
+            }
+        }
+        if (!replaced) {
+            throw std::runtime_error("Out of physical memory and no pages to replace!");
+        }
     }
     auto it = free_pages.begin();
     uint32_t page_number = *it;
