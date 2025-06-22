@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include <cstdint>
 #include <iostream>
-
+#include <queue>
 class MemoryManager {
 private:
     std::unordered_set<uint32_t> free_pages;
