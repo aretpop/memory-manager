@@ -8,7 +8,7 @@
 #include <sstream>
 #include <windows.h>
 #include "common/config.h"
-
+#include <cstdint>
 #define SECTIONS 5 // text, data, heap, stack, shared_lib
 
 // Thread-safe random number generation
