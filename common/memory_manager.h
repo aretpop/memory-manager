@@ -3,6 +3,7 @@
 
 #include <unordered_set>
 #include <cstdint>
+#include <iostream>
 
 class MemoryManager {
 private:
