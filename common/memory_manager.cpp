@@ -1,8 +1,10 @@
 #include "memory_manager.h"
 #include "config.h"
 #include <stdexcept>
+#include <mutex>
 
 MemoryManager::MemoryManager() {
+    std::lock_guard<std::mutex> lock(mtx);
     total_pages = PHYSICAL_MEMORY_SIZE / (MIN_PAGE_SIZE_KB * 1024);
     for (uint32_t i = 0; i < total_pages; ++i) {
         free_pages.insert(i);
@@ -15,6 +17,7 @@ MemoryManager& MemoryManager::getInstance() {
 }
 
 uint32_t MemoryManager::allocatePage() {
+    std::lock_guard<std::mutex> lock(mtx);
     if (free_pages.empty()) {
         uint32_t page_to_replace;
         bool replaced = false;
@@ -43,15 +46,18 @@ uint32_t MemoryManager::allocatePage() {
 }
 
 void MemoryManager::deallocatePage(uint32_t page_number) {
+    std::lock_guard<std::mutex> lock(mtx);
     if (allocated_pages.count(page_number) == 0) return;
     allocated_pages.erase(page_number);
     free_pages.insert(page_number);
 }
 
 uint32_t MemoryManager::getFreePageCount() const {
+    std::lock_guard<std::mutex> lock(mtx);
     return free_pages.size();
 }
 
 uint32_t MemoryManager::getAllocatedPageCount() const {
+    std::lock_guard<std::mutex> lock(mtx);
     return allocated_pages.size();
 }

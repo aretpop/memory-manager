@@ -8,6 +8,8 @@
 #include "task.h" // Task class (from task.cpp)
 #include "../common/config.h" // Configuration constants (from config.h)
 #include "../common/memory_manager.h"
+#include <thread>
+#include <vector>
 
 using namespace std;
 
@@ -27,8 +29,8 @@ uint32_t parseSize(const string& sizeStr) {
     return number * multiplier;
 }
 
-// Process a single trace line
-void processLine(const string& line, map<string, task*>& taskMap) {
+// Process a single trace line and store accesses
+void processLine(const string& line, map<string, vector<uint32_t>>& accessMap) {
     stringstream ss(line);
     string taskStr, addrStr, sizeStr;
 
@@ -46,17 +48,12 @@ void processLine(const string& line, map<string, task*>& taskMap) {
     uint32_t logical_address = stoul(addrStr, nullptr, 16);
     uint32_t size_in_bytes = parseSize(sizeStr);
 
-    if (taskMap.find(task_id) == taskMap.end()) {
-        taskMap[task_id] = new task(task_id); // create new Task if it doesn't exist
-    }
-
-    // Simulate access for all pages covered by this memory region
     uint32_t page_size = MIN_PAGE_SIZE_KB * 1024;
     uint32_t num_pages = (size_in_bytes + page_size - 1) / page_size;
 
     for (uint32_t i = 0; i < num_pages; ++i) {
         uint32_t page_address = logical_address + i * page_size;
-        taskMap[task_id]->accessMemory(page_address);
+        accessMap[task_id].push_back(page_address);
     }
 }
 
@@ -69,14 +66,35 @@ void readTraceFile(const string& filename) {
     }
 
     string line;
+    map<string, vector<uint32_t>> accessMap;
     map<string, task*> taskMap;
 
     while (getline(infile, line)) {
         if (line.empty()) continue;
-        processLine(line, taskMap);
+        processLine(line, accessMap);
     }
 
-    // Print stats for all tasks
+    // Create tasks
+    for (const auto& pair : accessMap) {
+        taskMap[pair.first] = new task(pair.first);
+    }
+
+    // Launch threads for each task
+    vector<std::thread> threads;
+    for (const auto& pair : accessMap) {
+        threads.emplace_back([&taskMap, &pair]() {
+            for (uint32_t addr : pair.second) {
+                taskMap[pair.first]->accessMemory(addr);
+            }
+        });
+    }
+
+    // Join all threads
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // Print stats for all tasks after threads complete
     cout << "\n=== Memory Access Summary ===\n";
     for (auto it : taskMap) {
         it.second->printStats();

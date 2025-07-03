@@ -2,6 +2,8 @@
 
 A C++ implementation of virtual memory management simulation featuring both single-level and multi-level page tables with TLB caching.
 
+**With parallelism:** Each task is executed in its own thread, allowing all tasks to process their memory accesses concurrently. This simulates a multi-process environment and leverages multi-core CPUs for faster and more realistic simulation. Thread safety is ensured using mutexes for all shared resources.
+
 ## Description
 
 This project simulates how modern operating systems manage virtual memory using:
@@ -146,3 +148,20 @@ AI Lab 3
 ## License
 
 This project is part of the AI Lab 3 coursework.
+
+## How the Project Works
+
+This simulator models virtual memory management by simulating memory accesses from multiple tasks (processes). The workflow is as follows:
+
+1. **Trace File Input**: The simulator reads a trace file (`trace.txt`) containing memory access patterns for multiple tasks. Each line specifies a task, a memory address, and the size of the access.
+2. **Task Creation**: For each unique task in the trace, a corresponding task object is created. Each task maintains its own page table and TLB (Translation Lookaside Buffer).
+3. **Parallel Execution**: Each task is executed in its own thread, allowing all tasks to process their memory accesses in parallel. This simulates a multi-process environment and leverages multi-core CPUs for faster simulation.
+4. **Thread Safety**: Shared resources, such as the physical memory manager and TLB structures, are protected using mutexes (`std::mutex`). This ensures that memory allocation, deallocation, and TLB updates are thread-safe, preventing race conditions and data corruption.
+5. **Memory Access Simulation**: Each thread processes its assigned memory accesses, performing TLB lookups, page table lookups, and physical memory allocations as needed. TLB hits/misses and page hits/misses are tracked for each task.
+6. **Statistics Reporting**: After all threads have completed their work (using thread joining to ensure all processing is finished), the simulator prints per-task statistics, including TLB and page table hit/miss rates.
+
+### Key Points
+- **Parallelism**: Each task runs in its own thread, processing memory accesses concurrently with other tasks.
+- **Race Condition Avoidance**: All access to shared resources (physical memory manager, TLB) is protected by mutexes, ensuring thread safety.
+- **Accurate Simulation**: The simulator models both single-level and multi-level page tables, as well as TLB caching, to provide a realistic view of virtual memory management.
+- **Output**: Statistics are only printed after all threads have finished, preventing interleaved or corrupted output.

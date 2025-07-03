@@ -5,12 +5,15 @@
 #include <cstdint>
 #include <iostream>
 #include <queue>
+#include <mutex>
+
 class MemoryManager {
 private:
     std::unordered_set<uint32_t> free_pages;
     std::unordered_set<uint32_t> allocated_pages;
     std::queue<uint32_t> page_allocation_order;
     uint32_t total_pages;
+    mutable std::mutex mtx; // Mutex for thread safety
 
     MemoryManager(); // constructor
 
